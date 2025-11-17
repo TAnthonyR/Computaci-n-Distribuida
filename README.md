@@ -61,12 +61,12 @@ o
 ./clienteFTP [host [puerto]]
 ```
 
-### Nota para la Verificación de Concurrencia
+# Verificación de Concurrencia
 
 Para visualizar en tiempo real la creación y ejecución simultánea de los procesos hijos (utilizando herramientas como `ps`, `htop` o `watch`), se recomienda realizar las pruebas de los comandos `mget` y `mput` con archivos de tamaño considerable (al menos **50 MB** cada uno).
 
 En pruebas locales (`localhost`), la velocidad de transferencia es extremadamente alta. Si se utilizan archivos pequeños (KB o pocos MB), los procesos hijos completan su tarea y terminan casi instantáneamente, haciendo imperceptible su ejecución paralela ante la observación humana.
-# Ejemplo de Sesión (Concurrente)
+### Ejemplo de Sesión (Concurrente)
 ```bash
 $ ./clienteFTP localhost
 220 (vsFTPd 3.0.5)
