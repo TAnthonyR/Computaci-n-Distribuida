@@ -57,7 +57,9 @@ Ejecuta el cliente sin especificar o especificando el host y, opcionalmente, el 
 
 ```bash
 ./clienteFTP
+```
 o
+```bash
 ./clienteFTP [host [puerto]]
 ```
 
