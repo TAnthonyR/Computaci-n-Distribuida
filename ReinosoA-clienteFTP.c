@@ -1,3 +1,5 @@
+/* ReinosoA-clienteFTP.c - main, sendCmd, pasivo, y comandos extendidos */
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +8,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/wait.h>
+#include <sys/wait.h> // Para wait()
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -23,7 +25,8 @@ int passiveTCP(const char *service, int qlen); /* Para sockets pasivos (escucha)
 /* Prototipos de funciones internas */
 void sendCmd(int s, char *cmd, char *res);
 int pasivo(int s);
-void get_local_ip_for_port(char *ip_str);
+/* CORRECCIÓN 1: Actualizar el prototipo para aceptar 'int s' */
+void get_local_ip_for_port(int s, char *ip_str);
 int create_listen_socket();
 int get_socket_port(int s);
 void handle_mget(int s, char *linea);
@@ -87,21 +90,19 @@ int pasivo (int s){
   return sdata;
 }
 
+/* CORRECCIÓN 2: Actualizar la definición de la función para aceptar 'int s' */
 /* Obtiene la IP local y la formatea para el comando PORT */
-void get_local_ip_for_port(char *ip_str) {
-    char lname[64];
-    struct hostent *hent;
-    char *ip;
-
-    if (gethostname(lname, 64) < 0) {
-        errexit("Error al obtener hostname: %s\n", strerror(errno));
-    }
-    hent = gethostbyname(lname);
-    if (!hent) {
-        errexit("Error al obtener host by name: %s\n", strerror(h_errno));
-    }
-    ip = inet_ntoa(*((struct in_addr*) hent->h_addr_list[0]));
+void get_local_ip_for_port(int s, char *ip_str) {
+    struct sockaddr_in local_addr;
+    socklen_t addr_len = sizeof(local_addr);
     
+    /* Preguntamos al sistema: "¿Quién soy yo en esta conexión?" */
+    /* Ahora 's' ya está declarado como argumento de la función */
+    if (getsockname(s, (struct sockaddr *)&local_addr, &addr_len) < 0) {
+        errexit("Error en getsockname: %s\n", strerror(errno));
+    }
+
+    char *ip = inet_ntoa(local_addr.sin_addr);
     strncpy(ip_str, ip, 64);
     /* Reemplaza '.' por ',' para el formato de PORT */
     char *p;
@@ -185,7 +186,7 @@ void handle_mget(int s, char *linea) {
     }
 
     /* Obtener IP local para PORT */
-    get_local_ip_for_port(local_ip_str);
+    get_local_ip_for_port(s, local_ip_str);
 
     /* * BUCLE 1: Iniciar transferencias y leer respuestas de control.
      * Las transferencias de DATOS (hijos) ocurrirán en paralelo.
@@ -316,7 +317,7 @@ void handle_mput(int s, char *linea) {
     }
 
     /* Obtener IP local para PORT */
-    get_local_ip_for_port(local_ip_str);
+    get_local_ip_for_port(s, local_ip_str);
 
     /* * BUCLE 1: Iniciar transferencias y leer respuestas de control.
      */
@@ -591,7 +592,7 @@ int main(int argc, char *argv[]) {
             char ip_str_fmt[64];
             s1 = create_listen_socket(); // Usa la nueva función
             int port_pput = get_socket_port(s1);
-            get_local_ip_for_port(ip_str_fmt);
+            get_local_ip_for_port(s, ip_str_fmt);
 
             /* Guardar IP,puerto formateado */
             if (ip_port_pput) free(ip_port_pput); // Liberar si existía

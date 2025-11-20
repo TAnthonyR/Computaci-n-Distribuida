@@ -33,24 +33,32 @@ Simplemente se ejecuta el siguiente comando para utilizar el `Makefile` proporci
 ```bash
 make -f Makefile-ClienteFTP
 ```
-# Nota de Configuración del Servidor
+# Configuración del Servidor
 
-Este cliente utiliza dos modos de transferencia de datos, lo cual tiene implicaciones en la configuración del servidor (ej. `vsftpd`):
+Este cliente utiliza dos modos de transferencia, lo que requiere una configuración específica en el servidor vsftpd para evitar bloqueos.
 
 ### Modo Pasivo (PASV)
 * **Usado por:** `get` y `put`.
 * **Cómo funciona:** El cliente le pide al servidor que abra un puerto y el cliente se conecta a él.
-* **Configuración:** Este modo es el más amigable con los firewalls y generalmente funciona sin configuración adicional.
 
 ### Modo Activo (PORT)
 * **Usado por:** `mget`, `mput`, `pput`.
 * **Cómo funciona:** El cliente abre un puerto y le pide al servidor que se conecte a él.
-* **Configuración (¡Importante!):** Durante la fase de pruebas, se observó que el modo activo es frecuentemente bloqueado por firewalls, y que la configuración del servidor `vsftpd` es particularmente crucial. Se experimentó con múltiples configuraciones para intentar habilitar la especificación del puerto 20:
 
-1.  Forzar el puerto 20 (`connect_from_port_20=YES`) en modo `listen=NO` (manejado por `xinetd`) falló, resultando en el error de permisos `500 OOPS: vsf_sysutil_bind`.
-2.  Al intentar corregir esto cambiando a modo standalone (`listen=YES`), el servicio falló al iniciar, provocando un error de 'Conexión rechazada'.
-
-Tras estos intentos fallidos, se determinó que la configuración más estable, y la que finalmente se incluye en el repositorio, es `listen=NO` junto con `connect_from_port_20=NO`. Esta combinación permite al servidor usar un puerto alto no privilegiado para el modo activo, lo cual funciona correctamente bajo `xinetd` sin errores de permisos.
+### vsftpd.conf (/etc/vsftpd.conf)
+```bash
+listen=YES
+local_enable=YES
+write_enable=YES
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+pasv_enable=YES
+port_enable=YES
+connect_from_port_20=YES
+chroot_local_user=YES
+allow_writeable_chroot=YES
+```
 
 # Uso
 Ejecuta el cliente sin especificar o especificando el host y, opcionalmente, el puerto:
@@ -61,7 +69,7 @@ o
 ./clienteFTP [host [puerto]]
 ```
 
-### Nota para la Verificación de Concurrencia
+### Verificación de Concurrencia
 
 Para visualizar en tiempo real la creación y ejecución simultánea de los procesos hijos (utilizando herramientas como `ps`, `htop` o `watch`), se recomienda realizar las pruebas de los comandos `mget` y `mput` con archivos de tamaño considerable (al menos **50 MB** cada uno).
 
