@@ -6,7 +6,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/wait.h>
+#include <sys/wait.h> // Para wait()
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -54,7 +54,7 @@ void sendCmd(int s, char *cmd, char *res) {
       errexit("Error al leer del socket de control: %s\n", strerror(errno));
   }
   res[n] = '\0';		/* despliega respuesta */
-  printf("%s", res); 
+  printf("%s", res); // La respuesta del servidor ya debe incluir \n
 }
 
 /* envia cmd PASV; recibe IP,pto del SVR; se conecta al SVR y retorna sock conectado */
@@ -438,7 +438,7 @@ int main(int argc, char *argv[]) {
   FILE  *fp;
   struct  sockaddr_in addrSvr;
   unsigned int alen = sizeof(addrSvr);
-  char *ip_port_pput = NULL;
+  char *ip_port_pput = NULL; // Para pput
 
   switch (argc) {
   case 1:
@@ -446,6 +446,7 @@ int main(int argc, char *argv[]) {
     break;
   case 3:
     service = argv[2];
+    /* FALL THROUGH */
   case 2:
     host = argv[1];
     break;
@@ -660,6 +661,7 @@ int main(int argc, char *argv[]) {
         printf("%s: comando no implementado.\n", ucmd);
       }
     } else {
+      /* EOF (Ctrl+D) */
       printf("\nSaliendo (EOF)...\n");
       sprintf (cmd, "QUIT"); 
       sendCmd(s, cmd, res);
