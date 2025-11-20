@@ -1,5 +1,3 @@
-/* ReinosoA-clienteFTP.c - main, sendCmd, pasivo, y comandos extendidos */
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +6,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/wait.h> // Para wait()
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -25,7 +23,6 @@ int passiveTCP(const char *service, int qlen); /* Para sockets pasivos (escucha)
 /* Prototipos de funciones internas */
 void sendCmd(int s, char *cmd, char *res);
 int pasivo(int s);
-/* CORRECCIÓN 1: Actualizar el prototipo para aceptar 'int s' */
 void get_local_ip_for_port(int s, char *ip_str);
 int create_listen_socket();
 int get_socket_port(int s);
@@ -57,7 +54,7 @@ void sendCmd(int s, char *cmd, char *res) {
       errexit("Error al leer del socket de control: %s\n", strerror(errno));
   }
   res[n] = '\0';		/* despliega respuesta */
-  printf("%s", res); // La respuesta del servidor ya debe incluir \n
+  printf("%s", res); 
 }
 
 /* envia cmd PASV; recibe IP,pto del SVR; se conecta al SVR y retorna sock conectado */
@@ -90,21 +87,18 @@ int pasivo (int s){
   return sdata;
 }
 
-/* CORRECCIÓN 2: Actualizar la definición de la función para aceptar 'int s' */
 /* Obtiene la IP local y la formatea para el comando PORT */
 void get_local_ip_for_port(int s, char *ip_str) {
     struct sockaddr_in local_addr;
     socklen_t addr_len = sizeof(local_addr);
     
     /* Preguntamos al sistema: "¿Quién soy yo en esta conexión?" */
-    /* Ahora 's' ya está declarado como argumento de la función */
     if (getsockname(s, (struct sockaddr *)&local_addr, &addr_len) < 0) {
         errexit("Error en getsockname: %s\n", strerror(errno));
     }
 
     char *ip = inet_ntoa(local_addr.sin_addr);
     strncpy(ip_str, ip, 64);
-    /* Reemplaza '.' por ',' para el formato de PORT */
     char *p;
     for(p = ip_str; *p; ++p) {
         if(*p == '.') {
@@ -114,7 +108,7 @@ void get_local_ip_for_port(int s, char *ip_str) {
 }
 
 /* * Crea un socket de escucha en un puerto efímero.
- * Esta versión no usa passiveTCP("0") para evitar el error "can't get service entry".
+ * No usa passiveTCP("0") para evitar el error "can't get service entry".
  * En su lugar, hace el bind() manualmente.
  */
 int create_listen_socket() {
@@ -444,7 +438,7 @@ int main(int argc, char *argv[]) {
   FILE  *fp;
   struct  sockaddr_in addrSvr;
   unsigned int alen = sizeof(addrSvr);
-  char *ip_port_pput = NULL; // Para pput
+  char *ip_port_pput = NULL;
 
   switch (argc) {
   case 1:
@@ -452,7 +446,6 @@ int main(int argc, char *argv[]) {
     break;
   case 3:
     service = argv[2];
-    /* FALL THROUGH */
   case 2:
     host = argv[1];
     break;
@@ -667,7 +660,6 @@ int main(int argc, char *argv[]) {
         printf("%s: comando no implementado.\n", ucmd);
       }
     } else {
-      /* EOF (Ctrl+D) */
       printf("\nSaliendo (EOF)...\n");
       sprintf (cmd, "QUIT"); 
       sendCmd(s, cmd, res);
