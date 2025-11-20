@@ -45,7 +45,7 @@ Este cliente utiliza dos modos de transferencia, lo que requiere una configuraci
 * **Usado por:** `mget`, `mput`, `pput`.
 * **Cómo funciona:** El cliente abre un puerto y le pide al servidor que se conecte a él.
 
-### vsftpd.conf (/etc/vsftpd.conf)
+### Servidor vsftpd (/etc/vsftpd.conf)
 ```bash
 listen=YES
 local_enable=YES
