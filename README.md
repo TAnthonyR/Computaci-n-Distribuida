@@ -2,6 +2,46 @@
 
 Este es un cliente FTP basado en C, desarrollado como un proyecto para implementar funcionalidades avanzadas del protocolo FTP (RFC 959), con un enfoque en la transferencia de archivos concurrente.
 
+# Configuraciones
+
+### Servidor
+
+Este cliente utiliza dos modos de transferencia, lo que requiere una configuración específica en el servidor vsftpd para evitar bloqueos.
+
+### Modo Pasivo (PASV)
+* **Usado por:** `get` y `put`.
+* **Cómo funciona:** El cliente le pide al servidor que abra un puerto y el cliente se conecta a él.
+
+### Modo Activo (PORT)
+* **Usado por:** `mget`, `mput`, `pput`.
+* **Cómo funciona:** El cliente abre un puerto y le pide al servidor que se conecte a él.
+
+### Archivo vsftpd (/etc/vsftpd.conf)
+```bash
+listen=YES
+local_enable=YES
+write_enable=YES
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+pasv_enable=YES
+port_enable=YES
+connect_from_port_20=YES
+chroot_local_user=YES
+allow_writeable_chroot=YES
+```
+### Cambio minimo en connectsock.c
+
+Mapeo del nombre del servicio:
+
+```bash
+if ( (pse = getservbyname(service, transport)) )
+```
+Mapeo del nombre del host:
+```bash
+if ( (phe = gethostbyname(host)) )
+```
+
 ## Características Implementadas
 
 El cliente soporta los siguientes comandos FTP:
@@ -32,32 +72,6 @@ Simplemente se ejecuta el siguiente comando para utilizar el `Makefile` proporci
 
 ```bash
 make -f Makefile-ClienteFTP
-```
-# Configuración del Servidor
-
-Este cliente utiliza dos modos de transferencia, lo que requiere una configuración específica en el servidor vsftpd para evitar bloqueos.
-
-### Modo Pasivo (PASV)
-* **Usado por:** `get` y `put`.
-* **Cómo funciona:** El cliente le pide al servidor que abra un puerto y el cliente se conecta a él.
-
-### Modo Activo (PORT)
-* **Usado por:** `mget`, `mput`, `pput`.
-* **Cómo funciona:** El cliente abre un puerto y le pide al servidor que se conecte a él.
-
-### Servidor vsftpd (/etc/vsftpd.conf)
-```bash
-listen=YES
-local_enable=YES
-write_enable=YES
-dirmessage_enable=YES
-use_localtime=YES
-xferlog_enable=YES
-pasv_enable=YES
-port_enable=YES
-connect_from_port_20=YES
-chroot_local_user=YES
-allow_writeable_chroot=YES
 ```
 
 # Uso
